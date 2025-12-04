@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nova announcements</title>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-app-compat.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.0/firebase-firestore-compat.min.js"></script>
+
+  <!-- Embedded CSS -->
+  <style>
+    :root {
+      --font-family: "Cairo", system-ui, sans-serif;
+      --bg-color: #f4f6f9;
+      --text-color: #222;
+      --accent-color: #2c7be5;
+      --accent-hover: #1a5bb8;
+      --card-bg: #fff;
+      --card-border: #e0e6ed;
+      --radius: 10px;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      direction: rtl;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    header {
+      background: var(--accent-color);
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      box-shadow: var(--shadow);
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .add-box {
+      display: none;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .add-box h3 {
+      margin-bottom: 0.75rem;
+      font-size: 1rem;
+      color: var(--accent-color);
+    }
+
+    .add-box input,
+    .add-box textarea {
+      width: 100%;
+      padding: 0.6rem;
+      margin-bottom: 0.75rem;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      font-family: inherit;
+      font-size: 0.95rem;
+      background: #fafafa;
+    }
+
+    .add-box button {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s ease;
+    }
+
+    .add-box button:hover {
+      background: var(--accent-hover);
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .card h3 {
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+      color: var(--accent-color);
+    }
+
+    .card p {
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+    }
+
+    .card-date {
+      font-size: 0.8rem;
+      color: #666;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: transparent;
+      border: none;
+      font-size: 1.2rem;
+      color: #999;
+      cursor: pointer;
+      display: none;
+    }
+
+    .delete-btn:hover {
+      color: #d00;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      padding: 2rem;
+    }
+
+    .empty-state-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .logout {
+      text-align: center;
+      margin: 2rem 0;
+    }
+
+    .logout button {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background 0.2s ease;
+    }
+
+    .logout button:hover {
+      background: var(--accent-hover);
+    }
+
+    .dev-footer {
+      text-align: center;
+      margin-top: 3rem;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #555;
+    }
+
+    .dev-link {
+      display: inline-block;
+      margin-bottom: 0.5rem;
+    }
+
+    .dev-logo {
+      display: block;
+      margin: 0 auto;
+    }
+
+    .dev-text strong {
+      color: var(--accent-color);
+    }
+
+    /* Floating WhatsApp support button */
+    .support-button {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: #25D366;
+      color: #fff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      text-decoration: none;
+      box-shadow: var(--shadow);
+      transition: background 0.2s ease;
+      z-index: 999;
+    }
+
+    .support-button:hover {
+      background: #1ebe5d;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <span> الإعلانات المهمة</span>
+  </header>
+
+  <div class="container">
+
+    <div class="add-box" id="addBox">
+      <h3> إضافة إعلان جديد</h3>
+      <input type="text" id="titleInput" placeholder="عنوان الإعلان">
+      <textarea id="contentInput" placeholder="محتوى الإعلان" rows="4"></textarea>
+      <button onclick="addAnnouncement()">نشر الإعلان</button>
+    </div>
+
+    <div id="announcementsList"></div>
+
+    <div class="logout">
+      <button onclick="window.location.href='index.html'"> الصفحه الرئيسية</button>
+    </div>
+
+   <div class="dev-footer">
+      </a>
+      <p class="dev-text">تحت اشراف <strong>يحيي طارق السيد</strong></p>
+      <p class="cc-credit">Credits to 8l8way (database & backend connection)</p>
+    </div>
+
+    <!-- Floating WhatsApp Support Button -->
+    <a 
+      class="support-button" 
+      href="https://wa.me/201120201667" 
+      target="_blank" 
+      rel="noopener"
+      title="استفسار او تحميل ملخص او تكليف"
+    >
+      ☎
+    </a>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBC8_X5D_7poZiEj7C6eLq9y1GDBN0_Afo",
+      authDomain: "yenwebs.firebaseapp.com",
+      projectId: "yenwebs",
+      storageBucket: "yenwebs.firebasestorage.app",
+      messagingSenderId: "485547247686",
+      appId: "1:485547247686:web:332211bc2b7389ac36e247",
+      measurementId: "G-MEGRXVCMS9"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    const addBox = document.getElementById('addBox');
+    const list = document.getElementById('announcementsList');
+
+    const isAdmin = localStorage.getItem("isAdmin") === "true";
+    const hasCode = localStorage.getItem("hasCode") === "true";
+
+    const canManage = isAdmin || hasCode;
+
+    if (canManage) {
+      addBox.style.display = "block";
+    }
+
+    async function addAnnouncement() {
+      const title = document.getElementById('titleInput').value.trim();
+      const content = document.getElementById('contentInput').value.trim();
+
+      if (!title || !content) {
+        alert("⚠️ من فضلك أدخل عنوان ومحتوى الإعلان.");
+        return;
+      }
+
+      try {
+        await db.collection("announcements").add({
+          title,
+          content,
+          date: new Date().toISOString()
+        });
+
+        document.getElementById('titleInput').value = "";
+        document.getElementById('contentInput').value = "";
+              alert("✅ تم نشر الإعلان بنجاح");
+    } catch (error) {
+      console.error(error);
+      alert("❌ حدث خطأ أثناء النشر");
+    }
+  }
+
+  db.collection("announcements").orderBy("date", "desc").onSnapshot(snapshot => {
+    list.innerHTML = "";
+    
+    if (snapshot.empty) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <p>لا توجد إعلانات حالياً</p>
+        </div>
+      `;
+      return;
+    }
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const date = new Date(data.date);
+      const formattedDate = date.toLocaleDateString('ar-EG', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const div = document.createElement("div");
+      div.className = "card";
+      div.innerHTML = `
+        <button class="delete-btn" id="del-${doc.id}" onclick="deleteAnnouncement('${doc.id}')">×</button>
+        <h3>${data.title}</h3>
+        <p>${data.content}</p>
+        <div class="card-date">🕐 ${formattedDate}</div>
+      `;
+      list.appendChild(div);
+
+      if (canManage) {
+        document.getElementById(`del-${doc.id}`).style.display = "block";
+      }
+    });
+  });
+
+  async function deleteAnnouncement(id) {
+    if (!canManage) {
+      alert("❌ لا تملك صلاحية الحذف.");
+      return;
+    }
+    
+    if (confirm("⚠️ هل تريد حذف هذا الإعلان؟")) {
+      try {
+        await db.collection("announcements").doc(id).delete();
+        alert("✅ تم الحذف بنجاح");
+      } catch (error) {
+        console.error(error);
+        alert("❌ حدث خطأ أثناء الحذف");
+      }
+    }
+  }
+</script>
+</body>
+</html>
