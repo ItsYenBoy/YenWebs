@@ -1,244 +1,265 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ar" dir="rtl">
 <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <title>UniNotes / College Materials</title>
   
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nova Materials</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  
   <link rel="stylesheet" href="style.css">
-  <!-- Favicon -->
-<link rel="icon" type="image/png" href="favicon.png">
-  
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+
+  <style>
+    /* Inline mobile overrides for specific layout needs */
+    body, html { overflow-x: hidden; }
+    
+    .auth-wrap {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap; 
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+      }
+      .app-layout { display: flex; flex-direction: column; }
+      .sidebar { width: 100% !important; margin-bottom: 15px; }
+      
+      .sidebar .card:first-child {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 5px;
+        text-align: center;
+      }
+
+      .nav-item {
+        font-size: 0.85rem;
+        flex-direction: column;
+        justify-content: center;
+        padding: 10px 5px;
+      }
+      
+      .subjects-grid, .materials-grid {
+        display: grid;
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+      }
+      
+      .modal-content {
+        width: 90% !important;
+        margin: 10% auto;
+        padding: 15px;
+        max-height: 85vh;
+        overflow-y: auto;
+      }
+      
+      input, select, textarea, button { width: 100%; box-sizing: border-box; }
+      .auth-box { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-  
 
-  <div>
-  <div id="loginPage" class="login-container">
-  <div class="login-box">
-    <div class="logo-container">
-      <img src="nova-logo.png" alt="Nova Logo" class="nova-logo">
-    <h2>Nova Materials</h2>
-    
-    <p>منصة المواد الدراسية</p>
-  
-</div>
-
-
-      <div class="tab-buttons">
-        <button class="tab-btn active" onclick="switchTab('login')">تسجيل الدخول</button>
-        <button class="tab-btn" onclick="switchTab('register')">إنشاء حساب</button>
-      </div>
-
-      <div id="loginForm">
-        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني">
-        <input type="password" id="loginPassword" placeholder="كلمة المرور">
-        <button onclick="handleLogin()">دخول</button>
-        <p class="error-msg" id="loginError"></p>
-      </div>
-
-      <div id="registerForm" class="hidden">
-        <input type="text" id="registerName" placeholder="الاسم الكامل">
-        <input type="email" id="registerEmail" placeholder="البريد الإلكتروني">
-        <input type="password" id="registerPassword" placeholder="كلمة المرور">
-        <button onclick="handleRegister()">إنشاء حساب</button>
-        <p class="error-msg" id="registerError"></p>
-      </div>
-    </div>
-  </div>
-
-  <div id="mainApp" class="hidden">
- <!-- 🔹 Updated Navbar with Logo -->
-<nav class="navbar">
-  <div class="navbar-title">
-    <h1>Nova Materials</h1>
-    <img src="nova-logo.png" alt="Nova Logo" class="nova-logo">
-  </div>
-
-  <button class="burger-btn" onclick="toggleNavMenu()">&#9776;</button> 
-
-  <div id="navButtons" class="nav-buttons"> 
-    <div class="user-info">
-      <span id="userName"></span> 
-      <button class="nav-btn" onclick="showPage('home')">الرئيسية</button>
-      <button class="nav-btn" onclick="showPage('subjects')">المواد</button>
-      <button class="nav-btn" onclick="window.location.href='ad.html'">الإعلانات</button>
-      <button class="nav-btn" id="adminBtn" onclick="showPage('admin')" style="display: none;">لوحة التحكم</button>
-      <button class="nav-btn logout" onclick="handleLogout()">خروج</button>
-      <button id="themeToggle" class="nav-btn">🎨 تبديل الثيم</button>
-    </div>
-  </div>
-</nav>
-
-    <div class="container">
-      <div id="homePage">
-        <h2 class="page-title" style="color: white; font-size: 2.5em; margin: 30px 0; font-weight: 900;">لوحة المعلومات</h2>
-        <div class="stats-grid" id="statsGrid"></div>
-
-        <div class="admin-panel"> 
-          <h3 style="color: #1e293b; font-size: 2em; margin-bottom: 20px; font-weight: 800;">الإعلانات الأخيرة</h3>
-          <div id="recentAnnouncements"></div>
-        </div>
-      </div>
-
-      <div id="subjectsPage" class="hidden">
-        <h2 class="page-title" style="color: white; font-size: 2.5em; margin: 30px 0; font-weight: 900;">المواد الدراسية</h2>
-        <div class="subjects-grid" id="subjectsGrid"></div>
-      </div>
-
-      <div id="materialsPage" class="hidden">
-        <div class="materials-header">
-          <h2 id="materialSubjectTitle" style="color: #1e293b; font-size: 2em; font-weight: 900;"></h2>
-          <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap; margin-top: 15px;">
-            <input type="text" id="searchBox" class="search-box" placeholder="بحث..." oninput="filterMaterials()">
-            <button class="nav-btn" onclick="showPage('subjects')">رجوع</button>
-          </div>
-          <div class="filters">
-            <button class="filter-btn active" onclick="filterByType('all')">الكل</button>
-            <button class="filter-btn" onclick="filterByType('summary')">ملخصات</button>
-            <button class="filter-btn" onclick="filterByType('assignment')">تكاليف</button>
-          </div>
-        </div>
-        <div id="materialsList"></div>
-      </div>
-
-      <div id="announcementsPage" class="hidden">
-        <h2 class="page-title" style="color: white; font-size: 2.5em; margin: 30px 0; font-weight: 900;">الإعلانات</h2>
-        <div id="announcementsList"></div>
-      </div>
+  <div class="container">
+    <header>
+      <div class="logo"><i class="fa-solid fa-graduation-cap"></i> UniNotes</div>
       
-      <div id="adminPage" class="hidden">
-        <h2 class="page-title" style="color: white; font-size: 2.5em; margin: 30px 0; font-weight: 900;">لوحة التحكم</h2>
-        <div class="admin-panel">
-          <h2>رفع مادة جديدة</h2>
-          
-          <select id="adminSubject">
-            <option>التفكير الابتكاري</option>
-            <option>لغة اجنبية (1)</option>
-            <option>مبادئ المحاسبة المالية</option>
-            <option>مبادئ القانون</option>
-            <option>مبادئ ادارة الاعمال</option>
-          </select>
-          
-          <select id="adminType">
-            <option value="summary">ملخص</option>
-            <option value="assignment">تكليف</option>
-          </select>
-          
-          <input type="text" id="adminTitle" placeholder="عنوان المادة">
-          <textarea id="adminDesc" placeholder="الوصف (اختياري)" rows="4"></textarea>
-          
-          <div class="file-upload-container">
-            <label for="adminFiles" class="file-upload-label">
-              📎 اختر الملفات 
-            </label>
-            <input 
-              type="file" 
-              id="adminFiles" 
-              class="file-upload-input" 
-              accept="image/*,.pdf"
-              multiple
-              onchange="handleFileSelect(event)"
-            >
-            <div id="fileList" class="file-list"></div>
+      <div class="nav" style="display:flex; gap:10px; align-items:center;">
+        <div id="userName" style="font-weight: bold; color: var(--accent);">زائر</div>
+        
+        <button onclick="cycleTheme()" class="btn" title="تغيير المظهر">
+            <i id="themeIcon" class="fa-solid fa-palette"></i>
+        </button>
+
+        <button id="adminBtn" class="btn hidden" onclick="showPage('admin')">Admin</button>
+        
+        <button onclick="handleLogout()" class="btn"><i class="fa-solid fa-right-from-bracket"></i></button>
+    </div>
+    </header>
+
+    <div id="loginPage">
+      <div class="auth-wrap">
+        <div class="auth-box card" style="flex: 1; min-width: 300px;">
+          <div class="tab-container">
+            <div class="tab-btn active" onclick="switchTab('login')">تسجيل دخول</div>
+            <div class="tab-btn" onclick="switchTab('register')">حساب جديد</div>
           </div>
-          
-          <div id="uploadProgress" class="upload-progress">
-            <div class="progress-bar-container">
-              <div id="progressBar" class="progress-bar"></div>
+
+          <form id="loginForm">
+            <input id="loginEmail" placeholder="البريد الجامعي أو الكود" style="margin-bottom: 10px;" />
+            <input id="loginPassword" placeholder="كلمة المرور" type="password" style="margin-bottom: 10px;" />
+            <div id="loginError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em;"></div>
+            <button type="button" class="btn primary" style="width:100%" onclick="handleLogin()">دخول</button>
+          </form>
+
+          <form id="registerForm" class="hidden">
+            <input id="registerName" placeholder="الاسم ثلاثي" style="margin-bottom: 10px;" />
+            <input id="registerEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;" />
+            <input id="registerPassword" placeholder="كلمة المرور" type="password" style="margin-bottom: 10px;" />
+            <div id="registerError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em;"></div>
+            <button type="button" class="btn primary" style="width:100%" onclick="handleRegister()">إنشاء حساب</button>
+          </form>
+        </div>
+
+        <div style="flex:1; min-width: 300px;">
+          <div class="card">
+            <h3><i class="fa-solid fa-bolt"></i> ما هو UniNotes؟</h3>
+            <p style="color:var(--text-secondary); margin-top: 10px;">
+              منصة مركزية لمشاركة الملخصات، التكاليف، والملفات الخاصة بالكلية. مكان واحد يجمع كل ما يحتاجه الطالب.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="mainApp" class="hidden">
+      <div class="app-layout">
+        
+       <aside class="sidebar">
+          <div class="card">
+            <div class="nav-item" onclick="showPage('home')"><i class="fa-solid fa-house"></i> الرئيسية</div>
+            <div class="nav-item" onclick="showPage('subjects')"><i class="fa-solid fa-book-open-reader"></i> المواد</div>
+            <div class="nav-item" onclick="showPage('announcements')"><i class="fa-solid fa-bullhorn"></i> الإعلانات</div>
+            
+            <div class="nav-item" onclick="window.open('https://wa.me/201120201667', '_blank')">
+                <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> تواصل
             </div>
-            <p id="progressText" class="progress-text">جاري الرفع...</p>
+          </div>
+
+          <div class="card">
+            <h4 style="margin-bottom: 10px;">إحصائيات المنصة</h4>
+            <div id="statsGrid" class="stats-grid"></div>
           </div>
           
-          <button onclick="uploadMaterial()">تم الرفع</button>
-        </div>
+          <div class="card hidden" id="favoritesSection">...</div>
+        </aside>
+
+        <main style="flex: 1;">
+          
+          <div id="homePage" class="card">
+            <h2 style="margin-bottom: 15px;">📢 آخر الإعلانات</h2>
+            <div id="recentAnnouncements"></div>
+          </div>
+          
+          <div id="subjectsPage" class="hidden">
+            <div class="card">
+                <h2>📚 المواد الدراسية</h2>
+                <p style="color: var(--text-secondary);">اختر المادة لتصفح الملفات الخاصة بها</p>
+            </div>
+            <div id="subjectsGrid" class="subjects-grid"></div>
+          </div>
+
+          <div id="materialsPage" class="hidden">
+            <div class="card">
+              <div class="toolbar">
+                <h3 id="materialSubjectTitle">المادة</h3>
+                <div class="search-container">
+                  <input id="searchBox" placeholder="🔍 ابحث في هذه المادة..." style="width: 100%; margin-bottom: 10px;" />
+                  <div class="filters" style="display: flex; gap: 5px; flex-wrap: wrap;">
+                    <button class="filter-btn active" onclick="filterByType('all')">الكل</button>
+                    <button class="filter-btn" onclick="filterByType('summary')">ملخصات</button>
+                    <button class="filter-btn" onclick="filterByType('assignment')">تكاليف</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div id="materialsList" class="materials-grid"></div>
+          </div>
+
+          <div id="announcementsPage" class="card hidden">
+            <h3>كل الإعلانات</h3>
+            <div id="announcementsList" style="margin-top: 15px;"></div>
+          </div>
+
+          <div id="adminPage" class="card hidden">
+            <h3>🛡️ لوحة التحكم (المشرف)</h3>
+            
+            <h4 style="margin-top: 20px; color: #fb923c;">📢 نشر إعلان جديد</h4>
+            <div style="display: grid; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
+                <input id="announcementTitle" placeholder="عنوان الإعلان" style="padding: 10px;" />
+                <textarea id="announcementContent" placeholder="محتوى الإعلان" rows="4" style="padding: 10px;"></textarea>
+                <button class="btn primary" onclick="postAnnouncement()">نشر الإعلان</button>
+            </div>
+
+            <h4>📂 رفع مادة جديدة</h4>
+            <p style="color: var(--text-secondary); margin-bottom: 10px;">
+                يمكنك هنا رفع ملفات جديدة (ملخصات أو تكاليف) لتظهر للطلاب مباشرة.
+            </p>
+            
+            <div style="display: grid; gap: 10px; margin-top: 10px;">
+                <select id="adminSubject" style="padding: 10px;">
+                    <option value="Subject N1">Subject N1</option>
+                    <option value="Subject N2">Subject N2</option>
+                    <option value="Subject N3">Subject N3</option>
+                    <option value="Subject N4">Subject N4</option>
+                    <option value="Subject N5">Subject N5</option>
+                </select>
+                
+                <select id="adminType" style="padding: 10px;">
+                    <option value="summary">ملخص (Summary)</option>
+                    <option value="assignment">تكليف (Assignment)</option>
+                </select>
+                
+                <input id="adminTitle" placeholder="عنوان الملف" style="padding: 10px;" />
+                <textarea id="adminDesc" placeholder="وصف الملف (اختياري)" style="padding: 10px;"></textarea>
+                
+                <div style="border: 2px dashed var(--border); padding: 20px; text-align: center; border-radius: 8px;">
+                    <input id="adminFiles" type="file" multiple onchange="handleFileSelect(event)" style="display: none;" />
+                    <button onclick="document.getElementById('adminFiles').click()" class="btn">اختر الملفات</button>
+                    <div id="fileList" style="margin-top: 10px;"></div>
+                </div>
+
+                <div id="uploadProgress" style="display:none; margin-top:8px">
+                  <div style="background:rgba(255,255,255,0.1); height:6px; border-radius:6px; overflow:hidden">
+                    <div id="progressBar" style="width:0%; height:100%; background:var(--accent); transition: width 0.3s;"></div>
+                  </div>
+                  <div id="progressText" style="font-size:0.85em; color:var(--text-secondary); margin-top:6px; text-align: center;"></div>
+                </div>
+
+                <button class="btn primary" onclick="uploadMaterial()">🚀 نشر الملفات</button>
+            </div>
+          </div>
+
+        </main>
       </div>
     </div>
   </div>
 
-  <div id="materialModal" class="modal">
+  <div id="materialModal" class="modal-overlay">
     <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      <h2 id="modalTitle"></h2>
-      <span id="modalTypeBadge" class="material-type-badge badge-summary" style="top: 110px; left: 45px;"></span>
-      <p id="modalDesc"></p>      
-      <div class="modal-info">
-        <div class="modal-info-item">
-          <span>👤 رفع بواسطة: <strong id="modalUploader"></strong></span>
+        <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:15px">
+          <h3 id="modalTitle" style="font-size: 1.3rem;"></h3>
+          <span id="modalTypeBadge" class="material-type-badge"></span>
         </div>
-        <div class="modal-info-item">
-          <span>📅 <strong id="modalDate"></strong></span>
+        
+        <p id="modalDesc" style="color: var(--text-secondary); margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"></p>
+        
+        <div style="font-size: 0.9em; color: var(--text-secondary); display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            <span><i class="fa-regular fa-user"></i> <span id="modalUploader"></span></span>
+            <span><i class="fa-regular fa-calendar"></i> <span id="modalDate"></span></span>
         </div>
-      </div>
-      
-      <h4 style="text-align: center; color: #1e293b; margin: 20px 0 15px 0; font-weight: 800;">📎 الملفات المرفقة</h4>
-      
-      <div class="modal-files-scroll">
-        <div id="modalFiles"></div>
-      </div>
+
+        <h4 style="margin-bottom: 10px;">الملفات المرفقة:</h4>
+        <div id="modalFiles" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        
+        <div style="text-align:center; margin-top:20px">
+            <button class="btn" style="width: 100%;" onclick="closeModal()">إغلاق</button>
+        </div>
     </div>
   </div>
 
-  <p class="dev-text">تحت اشراف <strong>يحيي طارق السيد  </strong></p>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
-<p class="cc-credit">Credits to 8l8way (database & backend connection)</p>
-<style>
-  .cc-credit {
-    position: 10px;       /* stays at bottom */
-    bottom: 10px;          /* distance from bottom */
-    width: 100%;           /* span across page */
-    text-align: center;    /* center the text */
-    font-size: 12px;       /* make it small */
-    color: #555;           /* subtle gray */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* soft shadow */
-  }
-</style>
+  <script src="script.js"></script> 
 
-  
-  <script src="auth.js"></script>
-  <script>
-  // All available themes (match the CSS classes you added)
-  const themes = [
-    "theme-neon",
-    "theme-pastel",
-    "theme-midnight",
-    "theme-arctic",
-    "theme-sakura",
-    "theme-forest"
-  ];
-
-  let currentTheme = 0;
-  const body = document.body;
-  const btn = document.getElementById("themeToggle");
-
-  // Load saved theme if exists
-  const savedTheme = localStorage.getItem("theme");
-  if (savedTheme && themes.includes(savedTheme)) {
-    body.classList.add(savedTheme);
-    currentTheme = themes.indexOf(savedTheme);
-  }
-
-  // Cycle through themes on button click
-  btn.addEventListener("click", () => {
-    body.classList.remove(themes[currentTheme]);
-    currentTheme = (currentTheme + 1) % themes.length;
-    body.classList.add(themes[currentTheme]);
-    localStorage.setItem("theme", themes[currentTheme]);
-  });
-</script>
-
-<a 
-  class="support-button" 
-  href="https://wa.me/201120201667" 
-  target="_blank" 
-  rel="noopener"
->
-  <i id="support-button" class="fa-brands fa-square-whatsapp"></i>     
-</a>
-
-</body>
+  </body>
 </html>
