@@ -6,65 +6,12 @@
   <title>UniNotes / College Materials</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
   <link rel="stylesheet" href="style.css">
-
-  <style>
-    /* Inline mobile overrides for specific layout needs */
-    body, html { overflow-x: hidden; }
-    
-    .auth-wrap {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap; 
-    }
-
-    @media (max-width: 768px) {
-      .container { padding: 10px; }
-      header {
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 0;
-      }
-      .app-layout { display: flex; flex-direction: column; }
-      .sidebar { width: 100% !important; margin-bottom: 15px; }
-      
-      .sidebar .card:first-child {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr); 
-        gap: 5px;
-        text-align: center;
-      }
-
-      .nav-item {
-        font-size: 0.85rem;
-        flex-direction: column;
-        justify-content: center;
-        padding: 10px 5px;
-      }
-      
-      .subjects-grid, .materials-grid {
-        display: grid;
-        grid-template-columns: 1fr !important;
-        gap: 10px;
-      }
-      
-      .modal-content {
-        width: 90% !important;
-        margin: 10% auto;
-        padding: 15px;
-        max-height: 85vh;
-        overflow-y: auto;
-      }
-      
-      input, select, textarea, button { width: 100%; box-sizing: border-box; }
-      .auth-box { width: 100%; }
-    }
-  </style>
-</head>
+  
+  </head>
 <body>
 
   <div class="container">
@@ -78,10 +25,10 @@
             <i id="themeIcon" class="fa-solid fa-palette"></i>
         </button>
 
-        <button id="adminBtn" class="btn hidden" onclick="showPage('admin')">Admin</button>
+        <button id="adminBtn" class="btn hidden" onclick="showPage('admin')"><i class="fa-solid fa-user-shield"></i> Admin</button>
         
-        <button onclick="handleLogout()" class="btn"><i class="fa-solid fa-right-from-bracket"></i></button>
-    </div>
+        <button onclick="handleLogout()" class="btn" title="تسجيل خروج"><i class="fa-solid fa-right-from-bracket"></i></button>
+      </div>
     </header>
 
     <div id="loginPage">
@@ -93,9 +40,9 @@
           </div>
 
           <form id="loginForm">
-            <input id="loginEmail" placeholder="البريد الجامعي أو الكود" style="margin-bottom: 10px;" />
+            <input id="loginEmail" placeholder="البريد الاكتروني" style="margin-bottom: 10px;" />
             <input id="loginPassword" placeholder="كلمة المرور" type="password" style="margin-bottom: 10px;" />
-            <div id="loginError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em;"></div>
+            <div id="loginError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em; text-align: right;"></div>
             <button type="button" class="btn primary" style="width:100%" onclick="handleLogin()">دخول</button>
           </form>
 
@@ -103,13 +50,13 @@
             <input id="registerName" placeholder="الاسم ثلاثي" style="margin-bottom: 10px;" />
             <input id="registerEmail" placeholder="البريد الإلكتروني" style="margin-bottom: 10px;" />
             <input id="registerPassword" placeholder="كلمة المرور" type="password" style="margin-bottom: 10px;" />
-            <div id="registerError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em;"></div>
+            <div id="registerError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em; text-align: right;"></div>
             <button type="button" class="btn primary" style="width:100%" onclick="handleRegister()">إنشاء حساب</button>
           </form>
         </div>
 
         <div style="flex:1; min-width: 300px;">
-          <div class="card">
+          <div class="card" style="height: 100%;">
             <h3><i class="fa-solid fa-bolt"></i> ما هو UniNotes؟</h3>
             <p style="color:var(--text-secondary); margin-top: 10px;">
            منصة مركزية لمشاركة الملخصات، التكاليف، و الاخبار المهمه الخاصه بالمحضرات و التكاليف و الملخصات. فقط!!!
@@ -128,29 +75,35 @@
             <div class="nav-item" onclick="showPage('subjects')"><i class="fa-solid fa-book-open-reader"></i> المواد</div>
             <div class="nav-item" onclick="showPage('announcements')"><i class="fa-solid fa-bullhorn"></i> الإعلانات</div>
             
+            <div class="nav-item" onclick="showPage('user')"><i class="fa-solid fa-user-gear"></i> إعدادات الحساب</div>
+
             <div class="nav-item" onclick="window.open('https://wa.me/201120201667', '_blank')">
                 <i class="fa-brands fa-whatsapp" style="color: #25D366;"></i> تواصل
             </div>
           </div>
 
-          <div class="card">
-            <h4 style="margin-bottom: 10px;">إحصائيات المنصة</h4>
+          <div class="card" style="margin-top: 20px;">
+            <h4 style="margin-bottom: 10px; color: var(--accent);">إحصائيات المنصة</h4>
             <div id="statsGrid" class="stats-grid"></div>
           </div>
           
-          <div class="card hidden" id="favoritesSection">...</div>
+          <div class="card hidden" id="favoritesSection" style="margin-top: 20px;">
+            <h4 style="margin-bottom: 10px; color: #f43f5e;"><i class="fa-solid fa-heart"></i> المفضلة</h4>
+            <div id="favoritesGrid" class="materials-grid">...</div>
+          </div>
         </aside>
 
         <main style="flex: 1;">
           
           <div id="homePage" class="card">
-            <h2 style="margin-bottom: 15px;">📢 آخر الإعلانات</h2>
+            <h2 style="margin-bottom: 15px; color: var(--accent);"><i class="fa-solid fa-dashboard"></i> لوحة التحكم</h2>
+            <h3 style="margin-bottom: 15px;">📢 آخر الإعلانات</h3>
             <div id="recentAnnouncements"></div>
           </div>
           
           <div id="subjectsPage" class="hidden">
             <div class="card">
-                <h2>📚 المواد الدراسية</h2>
+                <h2 style="color: var(--accent);"><i class="fa-solid fa-book"></i> المواد الدراسية</h2>
                 <p style="color: var(--text-secondary);">اختر المادة لتصفح الملفات الخاصة بها</p>
             </div>
             <div id="subjectsGrid" class="subjects-grid"></div>
@@ -159,13 +112,21 @@
           <div id="materialsPage" class="hidden">
             <div class="card">
               <div class="toolbar">
-                <h3 id="materialSubjectTitle">المادة</h3>
+                <h3 id="materialSubjectTitle" style="color: var(--accent);">المادة</h3>
                 <div class="search-container">
                   <input id="searchBox" placeholder="🔍 ابحث في هذه المادة..." style="width: 100%; margin-bottom: 10px;" />
-                  <div class="filters" style="display: flex; gap: 5px; flex-wrap: wrap;">
+                  <div class="filters" style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
                     <button class="filter-btn active" onclick="filterByType('all')">الكل</button>
                     <button class="filter-btn" onclick="filterByType('summary')">ملخصات</button>
                     <button class="filter-btn" onclick="filterByType('assignment')">تكاليف</button>
+
+                    <select id="sortMaterialsBy" class="filter-btn" onchange="displayMaterials()">
+                        <option value="date-desc">التاريخ (الأحدث)</option>
+                        <option value="date-asc">التاريخ (الأقدم)</option>
+                        <option value="downloads-desc">الأكثر تحميلاً</option>
+                        <option value="views-desc">الأكثر مشاهدة</option>
+                        <option value="title-asc">العنوان (أ - ي)</option>
+                    </select>
                   </div>
                 </div>
               </div>
@@ -174,32 +135,52 @@
           </div>
 
           <div id="announcementsPage" class="card hidden">
-            <h3>كل الإعلانات</h3>
+            <h3 style="color: var(--accent);">كل الإعلانات</h3>
             <div id="announcementsList" style="margin-top: 15px;"></div>
           </div>
 
+          <div id="userPage" class="card hidden">
+              <h2 style="color: var(--accent); margin-bottom: 20px;"><i class="fa-solid fa-user-gear"></i> إعدادات الحساب</h2>
+              
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
+                  
+                  <div class="card" style="padding: 20px;">
+                      <h4 style="color: var(--accent); margin-bottom: 15px;">معلومات الملف الشخصي</h4>
+                      <p><strong>الاسم:</strong> <span id="profileNameDisplay"></span></p>
+                      <p><strong>البريد:</strong> <span id="profileEmailDisplay"></span></p>
+                      <p style="color: var(--text-secondary); margin-top: 15px; font-size: 0.9em;">هذه البيانات غير قابلة للتغيير حاليًا إلا بالاتصال بالإدارة.</p>
+                  </div>
+                  
+                  <div class="card" style="padding: 20px;">
+                      <h4 style="color: #fb923c; margin-bottom: 15px;">تغيير كلمة المرور</h4>
+                      <input id="currentPassword" type="password" placeholder="كلمة المرور الحالية" />
+                      <input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6+ أحرف)" />
+                      <input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" />
+                      
+                      <div id="passwordError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em; text-align: right;"></div>
+                      
+                      <button class="btn primary" style="width: 100%; margin-top: 10px;" onclick="handlePasswordUpdate()">تحديث كلمة المرور</button>
+                  </div>
+              </div>
+          </div>
           <div id="adminPage" class="card hidden">
-            <h3>🛡️ لوحة التحكم (المشرف)</h3>
+            <h2 style="color: var(--accent); margin-bottom: 20px;">🛡️ لوحة التحكم (المشرف)</h2>
             
-            <h4 style="margin-top: 20px; color: #fb923c;">📢 نشر إعلان جديد</h4>
+            <h4 style="margin-top: 20px; color: #fb923c;"><i class="fa-solid fa-bullhorn"></i> نشر إعلان جديد</h4>
             <div style="display: grid; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <input id="announcementTitle" placeholder="عنوان الإعلان" style="padding: 10px;" />
                 <textarea id="announcementContent" placeholder="محتوى الإعلان" rows="4" style="padding: 10px;"></textarea>
                 <button class="btn primary" onclick="postAnnouncement()">نشر الإعلان</button>
             </div>
 
-            <h4>📂 رفع مادة جديدة</h4>
+            <h4 style="color: #06b6d4;"><i class="fa-solid fa-cloud-arrow-up"></i> رفع مادة جديدة</h4>
             <p style="color: var(--text-secondary); margin-bottom: 10px;">
                 يمكنك هنا رفع ملفات جديدة (ملخصات أو تكاليف) لتظهر للطلاب مباشرة.
             </p>
             
             <div style="display: grid; gap: 10px; margin-top: 10px;">
                 <select id="adminSubject" style="padding: 10px;">
-                    <option value="Subject N1">Subject N1</option>
-                    <option value="Subject N2">Subject N2</option>
-                    <option value="Subject N3">Subject N3</option>
-                    <option value="Subject N4">Subject N4</option>
-                    <option value="Subject N5">Subject N5</option>
+                    <option value="">-- اختر المادة --</option>
                 </select>
                 
                 <select id="adminType" style="padding: 10px;">
@@ -239,18 +220,18 @@
           <span id="modalTypeBadge" class="material-type-badge"></span>
         </div>
         
-        <p id="modalDesc" style="color: var(--text-secondary); margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;"></p>
+        <p id="modalDesc" style="color: var(--text-secondary); margin-bottom: 15px; background: var(--input-bg); padding: 10px; border-radius: 8px;"></p>
         
         <div style="font-size: 0.9em; color: var(--text-secondary); display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
             <span><i class="fa-regular fa-user"></i> <span id="modalUploader"></span></span>
             <span><i class="fa-regular fa-calendar"></i> <span id="modalDate"></span></span>
         </div>
 
-        <h4 style="margin-bottom: 10px;">الملفات المرفقة:</h4>
+        <h4 style="margin-bottom: 10px; color: var(--accent);">الملفات المرفقة:</h4>
         <div id="modalFiles" style="display: flex; flex-direction: column; gap: 8px;"></div>
         
         <div style="text-align:center; margin-top:20px">
-            <button class="btn" style="width: 100%;" onclick="closeModal()">إغلاق</button>
+            <button class="btn primary" style="width: 100%;" onclick="closeModal()">إغلاق</button>
         </div>
     </div>
   </div>
@@ -260,8 +241,13 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 
   <script src="script.js"></script> 
+  <footer class="app-footer">
+        <p>تحت إشراف <span class="creator-name">يحيى طارق السيد</span> </p>
+    </footer>
+
+    <script src="..."></script>
+</body>
 
   </body>
 
 </html>
-
