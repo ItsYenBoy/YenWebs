@@ -191,12 +191,32 @@ input[type="color"]::-webkit-color-swatch {
 @media (max-width: 900px) {
     .stats-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px; }
     .container { padding: 10px; max-width: 100vw; overflow-x: hidden; }
+    
     header { flex-direction: column; gap: 15px; text-align: center; padding: 15px; width: 100%; }
     .nav { width: 100%; justify-content: center; flex-wrap: wrap; gap: 10px; }
+    
     .app-layout { display: flex; flex-direction: column; gap: 20px; width: 100%; }
+    
     .sidebar { position: relative; top: 0; width: 100% !important; box-shadow: none; }
     .sidebar .card:first-child { display: flex; overflow-x: auto; white-space: nowrap; gap: 10px; padding: 10px; scrollbar-width: none; }
+    
     .nav-item { flex: 0 0 auto; width: auto; }
     .subjects-grid, .materials-grid { grid-template-columns: 1fr !important; width: 100%; }
     .modal-content { width: 95%; margin: 5% auto; padding: 15px; max-height: 80vh; }
-}   
+
+    /* === FIX: LOGIN PAGE ON MOBILE === */
+    .auth-wrap { 
+        flex-direction: column; 
+        align-items: center; 
+        gap: 20px; 
+    }
+    .auth-box { 
+        width: 100%; 
+        min-width: 0 !important; /* Overrides the 300px limit if screen is tiny */
+    }
+    /* Select the 'What is UniNotes' box */
+    .auth-wrap > div { 
+        width: 100%; 
+        min-width: 0 !important; 
+    }
+}
