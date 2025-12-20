@@ -8,7 +8,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  
   <link rel="stylesheet" href="style.css">
 
   <style>
@@ -19,11 +18,27 @@
         }
     }
   </style>
-  
 </head>
 <body>
 
-  <div class="container">
+  <div id="globalBroadcast" class="hidden" style="background: #fb923c; color: #000; text-align: center; padding: 10px; font-weight: bold; position: sticky; top: 0; z-index: 9999; box-shadow: 0 5px 20px rgba(251, 146, 60, 0.3);">
+      <i class="fa-solid fa-bullhorn"></i> <span id="broadcastText"></span>
+  </div>
+
+  <div id="shutdownOverlay" class="hidden">
+      <div class="shutdown-content">
+          <h1 id="shutdownTrigger">404</h1>
+          <p>Page Not Found</p>
+          <p style="font-size: 0.8rem; opacity: 0.5;">The requested URL was not found on this server.</p>
+          
+          <div id="unlockBox" class="hidden" style="margin-top: 20px;">
+              <input type="password" id="unlockPass" placeholder="Admin Password" style="padding: 5px; border-radius: 4px; border: 1px solid #ccc; color: black;">
+              <button onclick="attemptUnlock()" style="cursor:pointer; padding: 5px 10px;">Unlock</button>
+          </div>
+      </div>
+  </div>
+
+  <div class="container" id="mainContainer">
     <header>
       <div class="logo"><i class="fa-solid fa-graduation-cap"></i> UniNotes</div>
       
@@ -35,6 +50,8 @@
         </button>
 
         <button id="adminBtn" class="btn hidden" onclick="showPage('admin')"><i class="fa-solid fa-user-shield"></i> Admin</button>
+        
+        <button id="ownerBtn" class="btn hidden owner-btn" onclick="showPage('owner')"><i class="fa-solid fa-crown"></i> Owner</button>
         
         <button onclick="handleLogout()" class="btn" title="تسجيل خروج"><i class="fa-solid fa-right-from-bracket"></i></button>
       </div>
@@ -82,8 +99,12 @@
           <div class="card">
             <div class="nav-item" onclick="showPage('home')"><i class="fa-solid fa-house"></i> الرئيسية</div>
             <div class="nav-item" onclick="showPage('subjects')"><i class="fa-solid fa-book-open-reader"></i> المواد</div>
-            <div class="nav-item" onclick="showPage('announcements')"><i class="fa-solid fa-bullhorn"></i> الإعلانات</div>
             
+            <div class="nav-item" onclick="loadMaterials('English Course')">
+                <i class="fa-solid fa-language" style="color: #fbbf24;"></i> كورس الانجليزي
+            </div>
+
+            <div class="nav-item" onclick="showPage('announcements')"><i class="fa-solid fa-bullhorn"></i> الإعلانات</div>
             <div class="nav-item" onclick="showPage('user')"><i class="fa-solid fa-user-gear"></i> إعدادات الحساب</div>
 
             <div class="nav-item" onclick="window.open('https://chat.whatsapp.com/LM53SiJVkND152AoxT9L90', '_blank')">
@@ -101,7 +122,6 @@
           
           <div id="homePage" class="card">
             <h2 style="margin-bottom: 15px; color: var(--accent);"><i class="fa-solid fa-dashboard"></i> لوحة التحكم</h2>
-            
             <div style="margin-bottom: 30px;">
                 <h4 style="margin-bottom: 10px; opacity: 0.8;">إحصائيات المنصة</h4>
                 <div id="statsGrid" class="stats-grid"></div>
@@ -124,19 +144,24 @@
                 <h3 id="materialSubjectTitle" style="color: var(--accent);">المادة</h3>
                 <div class="search-container">
                   <input id="searchBox" placeholder="🔍 ابحث في هذه المادة..." style="width: 100%; margin-bottom: 10px;" />
-                  <div class="filters" style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
+                  
+                  <div id="standardFilters" class="filters" style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
                     <button class="filter-btn active" onclick="filterByType('all')">الكل</button>
                     <button class="filter-btn" onclick="filterByType('summary')">ملخصات</button>
                     <button class="filter-btn" onclick="filterByType('assignment')">تكاليف</button>
+                  </div>
 
-                    <select id="sortMaterialsBy" class="filter-btn" onchange="displayMaterials()">
+                  <div id="englishFilters" class="filters hidden" style="display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end;">
+                    <button class="filter-btn active" onclick="filterByType('all')">الكل</button>
+                    <button class="filter-btn" onclick="filterByType('course')">شرح (Courses)</button>
+                    <button class="filter-btn" onclick="filterByType('quiz')">كويزات (Quizzes)</button>
+                  </div>
+
+                  <select id="sortMaterialsBy" class="filter-btn" onchange="displayMaterials()" style="margin-top: 5px;">
                         <option value="date-desc">التاريخ (الأحدث)</option>
                         <option value="date-asc">التاريخ (الأقدم)</option>
                         <option value="downloads-desc">الأكثر تحميلاً</option>
-                        <option value="views-desc">الأكثر مشاهدة</option>
-                        <option value="title-asc">العنوان (أ - ي)</option>
-                    </select>
-                  </div>
+                  </select>
                 </div>
               </div>
             </div>
@@ -150,70 +175,117 @@
 
           <div id="userPage" class="card hidden">
               <h2 style="color: var(--accent); margin-bottom: 20px;"><i class="fa-solid fa-user-gear"></i> إعدادات الحساب</h2>
-              
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;">
-                  
                   <div class="card" style="padding: 20px;">
                       <h4 style="color: var(--accent); margin-bottom: 15px;">معلومات الملف الشخصي</h4>
                       <p><strong>الاسم:</strong> <span id="profileNameDisplay"></span></p>
                       <p><strong>البريد:</strong> <span id="profileEmailDisplay"></span></p>
-                      <p style="color: var(--text-secondary); margin-top: 15px; font-size: 0.9em;">هذه البيانات غير قابلة للتغيير حاليًا إلا بالاتصال بالإدارة.</p>
                   </div>
-                  
                   <div class="card" style="padding: 20px;">
                       <h4 style="color: #fb923c; margin-bottom: 15px;">تغيير كلمة المرور</h4>
                       <input id="currentPassword" type="password" placeholder="كلمة المرور الحالية" />
                       <input id="newPassword" type="password" placeholder="كلمة المرور الجديدة (6+ أحرف)" />
                       <input id="confirmNewPassword" type="password" placeholder="تأكيد كلمة المرور الجديدة" />
-                      
                       <div id="passwordError" style="color:#ff7b7b; min-height:18px; font-size: 0.9em; text-align: right;"></div>
-                      
                       <button class="btn primary" style="width: 100%; margin-top: 10px;" onclick="handlePasswordUpdate()">تحديث كلمة المرور</button>
                   </div>
               </div>
           </div>
+
           <div id="adminPage" class="card hidden">
             <h2 style="color: var(--accent); margin-bottom: 20px;">🛡️ لوحة التحكم (المشرف)</h2>
-            
             <h4 style="margin-top: 20px; color: #fb923c;"><i class="fa-solid fa-bullhorn"></i> نشر إعلان جديد</h4>
             <div style="display: grid; gap: 10px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid var(--border);">
                 <input id="announcementTitle" placeholder="عنوان الإعلان" style="padding: 10px;" />
                 <textarea id="announcementContent" placeholder="محتوى الإعلان" rows="4" style="padding: 10px;"></textarea>
                 <button class="btn primary" onclick="postAnnouncement()">نشر الإعلان</button>
             </div>
-
-            <h4 style="color: #06b6d4;"><i class="fa-solid fa-cloud-arrow-up"></i> رفع مادة جديدة</h4>
-            <p style="color: var(--text-secondary); margin-bottom: 10px;">
-                يمكنك هنا رفع ملفات جديدة (ملخصات أو تكاليف) لتظهر للطلاب مباشرة.
-            </p>
             
+            <h4 style="color: #06b6d4;"><i class="fa-solid fa-cloud-arrow-up"></i> رفع مادة جديدة</h4>
             <div style="display: grid; gap: 10px; margin-top: 10px;">
-                <select id="adminSubject" style="padding: 10px;">
-                    <option value="">-- اختر المادة --</option>
-                </select>
-                
+                <select id="adminSubject" style="padding: 10px;"></select>
                 <select id="adminType" style="padding: 10px;">
                     <option value="summary">ملخص (Summary)</option>
                     <option value="assignment">تكليف (Assignment)</option>
                 </select>
-                
                 <input id="adminTitle" placeholder="عنوان الملف" style="padding: 10px;" />
                 <textarea id="adminDesc" placeholder="وصف الملف (اختياري)" style="padding: 10px;"></textarea>
-                
                 <div style="border: 2px dashed var(--border); padding: 20px; text-align: center; border-radius: 8px;">
                     <input id="adminFiles" type="file" multiple onchange="handleFileSelect(event)" style="display: none;" />
                     <button onclick="document.getElementById('adminFiles').click()" class="btn">اختر الملفات</button>
                     <div id="fileList" style="margin-top: 10px;"></div>
                 </div>
-
                 <div id="uploadProgress" style="display:none; margin-top:8px">
                   <div style="background:rgba(255,255,255,0.1); height:6px; border-radius:6px; overflow:hidden">
                     <div id="progressBar" style="width:0%; height:100%; background:var(--accent); transition: width 0.3s;"></div>
                   </div>
-                  <div id="progressText" style="font-size:0.85em; color:var(--text-secondary); margin-top:6px; text-align: center;"></div>
                 </div>
-
                 <button class="btn primary" onclick="uploadMaterial()">🚀 نشر الملفات</button>
+            </div>
+          </div>
+
+          <div id="ownerPage" class="card hidden">
+            <h2 style="color: #f43f5e; margin-bottom: 20px; font-family: 'Courier New', monospace;">
+                <i class="fa-solid fa-terminal"></i> SYSTEM_ROOT (OWNER)
+            </h2>
+            
+            <div class="card" style="border: 1px solid #f43f5e; background: rgba(244, 63, 94, 0.05); margin-bottom: 20px;">
+                <h3 style="color: #f43f5e;">⚠️ Emergency Protocol (Kill Switch)</h3>
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:10px;">
+                    <p id="shutdownStatus" style="font-weight: bold; margin:0; font-family:monospace"></p>
+                    <button id="killSwitchBtn" class="btn" onclick="toggleSiteShutdown()" style="font-weight:bold">EXECUTE</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent);">🎨 Site Theme Controller</h3>
+                <p style="font-size:0.85em; color:var(--text-secondary); margin-bottom:15px;">
+                    Control the website's accent color for ALL visitors instantly.
+                </p>
+                <div style="display: flex; gap: 15px; align-items: center; background: var(--input-bg); padding: 15px; border-radius: 12px;">
+                    <div style="flex:1">
+                        <label style="font-size:0.9em; display:block; margin-bottom:5px">Accent Color (Hex)</label>
+                        <div style="display:flex; gap:10px;">
+                            <input type="color" id="themeColorPicker" style="height:40px; width:60px; padding:0; border:none; cursor:pointer" onchange="previewThemeColor(this.value)">
+                            <input type="text" id="themeColorText" placeholder="#06b6d4" style="flex:1; letter-spacing:2px; font-family:monospace">
+                        </div>
+                    </div>
+                    <button class="btn primary" onclick="saveGlobalTheme()">APPLY TO SERVER</button>
+                </div>
+                <div style="margin-top:10px; display:flex; gap:10px;">
+                    <button class="btn" onclick="resetGlobalTheme()" style="font-size:0.8rem">Reset to Default</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="color: #fb923c;">📢 Global Broadcast System</h3>
+                <p style="font-size:0.85em; color:var(--text-secondary); margin-bottom:10px;">
+                    This message will appear at the very top of the screen for everyone.
+                </p>
+                <input id="broadcastMessage" placeholder="Type a critical alert..." style="margin-bottom:10px; border-color:#fb923c">
+                <div style="display:flex; gap:10px">
+                    <button class="btn primary" onclick="setBroadcast()" style="background:#fb923c; border-color:#fb923c; color:black">Start Broadcast</button>
+                    <button class="btn" onclick="clearBroadcast()" style="color:#f43f5e">Stop</button>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 20px;">
+                <h3 style="color: var(--accent);">📚 Subject Database</h3>
+                <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+                    <input id="newSubjectName" placeholder="New Subject Name" />
+                    <button class="btn primary" onclick="addNewSubject()">Add</button>
+                </div>
+                <div id="ownerSubjectsList" style="display: grid; gap: 8px; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+
+            <div class="card">
+                <h3 style="color: #fb923c;">👮 Admin Access Control</h3>
+                <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 20px;">
+                    <input id="newAdminName" placeholder="Name" style="flex:1" />
+                    <input id="newAdminEmail" placeholder="Email" style="flex:2" />
+                    <button class="btn primary" onclick="addNewAdmin()">Authorize</button>
+                </div>
+                <div id="adminsList" style="display: grid; gap: 10px;"></div>
             </div>
           </div>
 
@@ -228,17 +300,13 @@
           <h3 id="modalTitle" style="font-size: 1.3rem;"></h3>
           <span id="modalTypeBadge" class="material-type-badge"></span>
         </div>
-        
         <p id="modalDesc" style="color: var(--text-secondary); margin-bottom: 15px; background: var(--input-bg); padding: 10px; border-radius: 8px;"></p>
-        
         <div style="font-size: 0.9em; color: var(--text-secondary); display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
             <span><i class="fa-regular fa-user"></i> <span id="modalUploader"></span></span>
             <span><i class="fa-regular fa-calendar"></i> <span id="modalDate"></span></span>
         </div>
-
         <h4 style="margin-bottom: 10px; color: var(--accent);">الملفات المرفقة:</h4>
         <div id="modalFiles" style="display: flex; flex-direction: column; gap: 8px;"></div>
-        
         <div style="text-align:center; margin-top:20px">
             <button class="btn primary" style="width: 100%;" onclick="closeModal()">إغلاق</button>
         </div>
@@ -254,5 +322,4 @@
         <p>Made by love&<span class="creator-name">Yen</span> </p>
     </footer>
 </body>
-
 </html>
