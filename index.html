@@ -3,15 +3,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <title>UniNotes / College Materials</title>
+  <title>UniNotes</title>
   
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800&family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
   <link rel="stylesheet" href="style.css">
+
+  <style>
+    @media (max-width: 900px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr) !important; 
+            gap: 10px;
+        }
+    }
+  </style>
   
-  </head>
+</head>
 <body>
 
   <div class="container">
@@ -82,11 +91,6 @@
             </div>
           </div>
 
-          <div class="card" style="margin-top: 20px;">
-            <h4 style="margin-bottom: 10px; color: var(--accent);">إحصائيات المنصة</h4>
-            <div id="statsGrid" class="stats-grid"></div>
-          </div>
-          
           <div class="card hidden" id="favoritesSection" style="margin-top: 20px;">
             <h4 style="margin-bottom: 10px; color: #f43f5e;"><i class="fa-solid fa-heart"></i> المفضلة</h4>
             <div id="favoritesGrid" class="materials-grid">...</div>
@@ -97,6 +101,11 @@
           
           <div id="homePage" class="card">
             <h2 style="margin-bottom: 15px; color: var(--accent);"><i class="fa-solid fa-dashboard"></i> لوحة التحكم</h2>
+            
+            <div style="margin-bottom: 30px;">
+                <h4 style="margin-bottom: 10px; opacity: 0.8;">إحصائيات المنصة</h4>
+                <div id="statsGrid" class="stats-grid"></div>
+            </div>
             <h3 style="margin-bottom: 15px;">📢 آخر الإعلانات</h3>
             <div id="recentAnnouncements"></div>
           </div>
@@ -242,12 +251,7 @@
 
   <script src="script.js"></script> 
   <footer class="app-footer">
-        <p>تحت إشراف <span class="creator-name">يحيى طارق السيد</span> </p>
+        <p>Made by love&<span class="creator-name">Yen</span> </p>
     </footer>
-
-    <script src="..."></script>
 </body>
-
-  </body>
-
 </html>

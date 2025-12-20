@@ -596,6 +596,13 @@ tr:hover {
 .toast-info { border-right: 5px solid #3b82f6; }
 
 /* ==================== MOBILE RESPONSIVENESS (FIXED & TESTED) ==================== */
+/* Add this at the very bottom of style.css */
+@media (max-width: 900px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr) !important; /* 2 items per row */
+        gap: 10px;
+    }
+}
 @media (max-width: 900px) { 
     /* 1. Layout & Container */
     .container {
@@ -767,4 +774,20 @@ tr:hover {
 .app-footer:hover .creator-name::after {
     transform: scaleX(1);
     transform-origin: left;
+}
+/* ==================== ANIMATIONS ==================== */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-card {
+    opacity: 0; /* Start hidden */
+    animation: fadeUp 0.6s ease-out forwards; /* Play animation */
 }

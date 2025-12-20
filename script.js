@@ -22,23 +22,23 @@ let isAdmin = false;
 let currentSubject = null;
 let currentFilter = "all";
 let allMaterials = [];
-let uploadedFiles = []; 
+let uploadedFiles = []; // This bucket holds all your files
 let fileCounter = 0;
 
-// Theme Globals (Added Back)
+// Theme Globals
 const themes = ["default", "light", "midnight"];
 let currentThemeIndex = 0;
 
-const subjects = ["Subject N1", "Subject N2", "Subject N3", "Subject N4", "Subject N5"];
+const subjects = ["التقكير الابتكاري", "لغه اجنبيه 1", "مبادء المحاسبه الماليه", "مبادء القانون", "مبادء اداره الاعمال"];
 
 // ==================== Helpers ====================
 function getSubjectIcon(subject) {
     const icons = {
-        "Subject N1": "fa-solid fa-chart-line",
-        "Subject N2": "fa-solid fa-language",
-        "Subject N3": "fa-solid fa-calculator",
-        "Subject N4": "fa-solid fa-scale-balanced",
-        "Subject N5": "fa-solid fa-briefcase" 
+        "التقكير الابتكاري": "fa-solid fa-chart-line",
+        "لغه اجنبيه 1": "fa-solid fa-language",
+        "مبادء المحاسبه الماليه": "fa-solid fa-calculator",
+        "مبادء القانون": "fa-solid fa-scale-balanced",
+        "مبادء اداره الاعمال": "fa-solid fa-briefcase" 
     };
     return icons[subject] || "fa-solid fa-book-open";
 }
@@ -74,7 +74,7 @@ function showToast(message, type = 'info') {
     setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
 }
 
-// ==================== Theme Logic (Added Back) ====================
+// ==================== Theme Logic ====================
 function applyTheme(themeName) {
     document.documentElement.setAttribute('data-theme', themeName);
     localStorage.setItem('selectedTheme', themeName);
@@ -96,21 +96,38 @@ function handleFileSelect(event) {
   const files = event.target.files;
   const fileList = document.getElementById('fileList');
   if (!files.length) return;
-  fileList.innerHTML = '';
-  uploadedFiles = [];
-  fileCounter = 0;
+
+  // We do NOT clear the list here, allowing "endless" adding
   
   Array.from(files).forEach(file => {
-    if (file.size > 10*1024*1024) alert(`تنبيه: الملف ${file.name} كبير جداً`);
-    const fileId = 'file-'+fileCounter++;
+    // 1. Check for duplicates
+    const isDuplicate = uploadedFiles.some(f => f.file.name === file.name && f.file.size === file.size);
+    if(isDuplicate) return;
+
+    // 2. Size Check
+    if (file.size > 10*1024*1024) {
+        alert(`تنبيه: الملف ${file.name} كبير جداً`);
+        return;
+    }
+
+    const fileId = 'file-' + fileCounter++;
     const fileSizeKB = (file.size/1024).toFixed(1);
+    
+    // 3. Create UI
     const item = document.createElement('div');
     item.className = 'file-item';
     item.id = fileId;
-    item.innerHTML = `<span>📄 ${file.name} (${fileSizeKB} KB)</span><button onclick="removeFile('${fileId}')" class="remove-file-btn">✕</button>`;
-    fileList.appendChild(item);
-    uploadedFiles.push({id: fileId, file});
+    item.style.marginBottom = "5px";
+    item.innerHTML = `
+        <span>📄 ${file.name} (${fileSizeKB} KB)</span>
+        <button onclick="removeFile('${fileId}')" class="remove-file-btn" style="color:red; margin-left:10px;">✕</button>
+    `;
+    
+    fileList.appendChild(item); // Append
+    uploadedFiles.push({id: fileId, file}); // Push
   });
+
+  // Reset input so you can select more
   event.target.value = null;
 }
 
@@ -171,18 +188,13 @@ async function handleLogin(){
   errorEl.textContent = "جاري التحقق...";
 
   try {
-    // Check Code First (For Admin bypass)
     const codesSnap = await db.collection("allowedCodes").where("code", "==", email).get();
     if(!codesSnap.empty) {
         const data = codesSnap.docs[0].data();
         setupSession(email, data.name || "Admin", data.admin || false);
         return;
     }
-    // Check Firebase Auth
     await auth.signInWithEmailAndPassword(email, password);
-    // onAuthStateChanged handles the rest, but if using this hybrid code:
-    const user = auth.currentUser;
-    // We need to fetch the name manually if just logged in via script
     const usersSnap = await db.collection("users").where("email", "==", email).limit(1).get();
     let uName = email.split('@')[0];
     if(!usersSnap.empty) uName = usersSnap.docs[0].data().name;
@@ -244,10 +256,9 @@ function showMainApp(){
   loadDashboard();
 }
 
-// ==================== Data Loading ====================
+// ==================== Data Loading (With Animation) ====================
 async function loadDashboard() {
   try {
-    // Queries all necessary collections
     const [usersSnap, codesSnap, materialsSnap, announcementsSnap] = await Promise.all([
         db.collection("users").get(),
         db.collection("allowedCodes").get(),
@@ -264,11 +275,12 @@ async function loadDashboard() {
 
     const grid = document.getElementById("statsGrid");
     if(grid) {
+        // Added 'animate-card' and staggered delay
         grid.innerHTML = `
-        <div class="stat-card"><h3>${usersSnap.size + codesSnap.size}</h3><p>الطلاب</p></div>
-        <div class="stat-card"><h3>${sumCount}</h3><p>ملخصات</p></div>
-        <div class="stat-card"><h3>${assignCount}</h3><p>تكاليف</p></div>
-        <div class="stat-card"><h3>${materialsSnap.size}</h3><p>الإجمالي</p></div>`;
+        <div class="stat-card animate-card" style="animation-delay: 0.1s"><h3>${usersSnap.size + codesSnap.size}</h3><p>الطلاب</p></div>
+        <div class="stat-card animate-card" style="animation-delay: 0.2s"><h3>${sumCount}</h3><p>ملخصات</p></div>
+        <div class="stat-card animate-card" style="animation-delay: 0.3s"><h3>${assignCount}</h3><p>تكاليف</p></div>
+        <div class="stat-card animate-card" style="animation-delay: 0.4s"><h3>${materialsSnap.size}</h3><p>الإجمالي</p></div>`;
     }
 
     const recent = document.getElementById("recentAnnouncements");
@@ -276,14 +288,17 @@ async function loadDashboard() {
         recent.innerHTML = "";
         if(announcementsSnap.empty) recent.innerHTML = "<p>لا توجد إعلانات</p>";
         else {
+            let delay = 0.5;
             announcementsSnap.forEach(doc => {
                 const d = doc.data();
+                // Added 'animate-card' and calculated delay
                 recent.innerHTML += `
-                <div style="background:var(--card-bg); border:1px solid var(--border); padding:15px; border-radius:10px; margin-bottom:10px">
+                <div class="animate-card" style="animation-delay: ${delay}s; background:var(--card-bg); border:1px solid var(--border); padding:15px; border-radius:10px; margin-bottom:10px">
                     <h4 style="color:var(--text-primary); margin-bottom:5px;">${d.title}</h4>
                     <p style="color:var(--text-secondary); font-size:0.9em;">${d.content}</p>
                     <span style="color:var(--accent); font-size:0.8em;">${new Date(d.date).toLocaleDateString('ar-EG')}</span>
                 </div>`;
+                delay += 0.1;
             });
         }
     }
@@ -306,13 +321,16 @@ async function loadSubjects() {
   const grid = document.getElementById("subjectsGrid");
   grid.innerHTML = "";
   
+  let delay = 0.1;
+
   subjects.forEach(subject => {
     const list = snap.docs.filter(d => d.data().subject === subject);
     const sCount = list.filter(d => normalizeType(d.data().type) === "summary").length;
     const aCount = list.filter(d => normalizeType(d.data().type) === "assignment").length;
     
+    // Added 'animate-card' and calculated delay
     grid.innerHTML += `
-      <div class="subject-card" onclick="loadMaterials('${subject}')">
+      <div class="subject-card animate-card" style="animation-delay: ${delay}s" onclick="loadMaterials('${subject}')">
         <i class="${getSubjectIcon(subject)} subject-icon"></i>
         <h3>${subject}</h3>
         <div class="subject-stats">
@@ -321,6 +339,7 @@ async function loadSubjects() {
         </div>
       </div>
     `;
+    delay += 0.1;
   });
 }
 
@@ -335,7 +354,6 @@ async function loadMaterials(subject) {
 
   allMaterials = snap.docs.map(doc => ({id:doc.id, ...doc.data(), type:normalizeType(doc.data().type)}));
   
-  // Sort by date initially
   allMaterials.sort((a,b) => new Date(b.date) - new Date(a.date));
   
   document.getElementById("materialSubjectTitle").textContent = subject;
@@ -345,7 +363,7 @@ async function loadMaterials(subject) {
   const sBox = document.getElementById("searchBox");
   if(sBox) sBox.value = "";
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.filter-btn')[0].classList.add('active'); // 'All' button
+  document.querySelectorAll('.filter-btn')[0].classList.add('active'); 
   
   displayMaterials();
 }
@@ -357,7 +375,6 @@ function displayMaterials() {
   const search = document.getElementById("searchBox").value.toLowerCase();
   if(search) list = list.filter(m => (m.title||"").toLowerCase().includes(search));
 
-  // Sorting Logic (Preserved)
   const sortBy = document.getElementById("sortMaterialsBy") ? document.getElementById("sortMaterialsBy").value : 'date-desc';
   list.sort((a, b) => {
     switch (sortBy) {
@@ -378,9 +395,9 @@ function displayMaterials() {
   let html = "";
   const now = new Date();
   const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+  let delay = 0.1;
 
   list.forEach(m => {
-    // New Badge
     const isNew = (now - new Date(m.date)) < threeDaysInMs;
     const badge = isNew ? `<span class="badge-new" style="background:#f43f5e; color:white; font-size:0.7rem; padding:2px 6px; border-radius:8px; margin-right:5px; display:inline-block;">جديد 🔥</span>` : "";
     
@@ -397,8 +414,9 @@ function displayMaterials() {
        actionBtn = `<a href="${mainLink}" class="download-file-btn" onclick="event.stopPropagation();">تحميل</a>`;
     }
 
+    // Added 'animate-card' and calculated delay
     html += `
-      <div class="material-card" onclick="openMaterialModal('${m.id}')">
+      <div class="material-card animate-card" style="animation-delay: ${delay}s" onclick="openMaterialModal('${m.id}')">
         <div style="display:flex; justify-content:space-between; margin-bottom:10px">
            <div><span class="material-type-badge ${typeToClass(m.type)}">${typeToArabic(m.type)}</span>${badge}</div>
            <span class="download-counter">${m.viewCount||0} 👁️</span>
@@ -413,6 +431,8 @@ function displayMaterials() {
            </div>
         </div>
       </div>`;
+      
+      delay += 0.05;
   });
   container.innerHTML = html;
 }
@@ -421,7 +441,7 @@ function filterByType(type) {
     currentFilter = type;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     const btn = document.querySelector(`.filters button[onclick="filterByType('${type}')"]`);
-    if(btn) btn.classList.add('active'); // Fixed double classList
+    if(btn) btn.classList.add('active'); 
     displayMaterials();
 }
 
@@ -455,7 +475,7 @@ function openMaterialModal(id) {
 }
 function closeModal() { document.getElementById("materialModal").style.display = "none"; }
 
-// Favorites Logic
+// Favorites
 let myFavorites = JSON.parse(localStorage.getItem('Favs')) || [];
 
 window.toggleFav = function(btn, id, title, desc, link, type, filesCount) {
@@ -532,7 +552,6 @@ async function loadUserPage() {
 }
 
 async function handlePasswordUpdate() {
-    // Only works for Firebase Auth users, not Code Login
     const currentPassword = document.getElementById("currentPassword").value.trim();
     const newPassword = document.getElementById("newPassword").value.trim();
     const confirmNewPassword = document.getElementById("confirmNewPassword").value.trim();
@@ -606,19 +625,15 @@ function populateAdminSubjects() {
 }
 
 window.onload = function() {
-    // 1. Check LocalStorage for Session (Code Login Support)
     const saved = localStorage.getItem("userEmail");
     if(saved) {
         currentUser = { name: localStorage.getItem("userName"), email: saved };
         isAdmin = localStorage.getItem("isAdmin") === "true";
         showMainApp();
     }
-    
-    // 2. Initialize UI
     populateAdminSubjects();
     updateFavoritesDisplay();
     
-    // 3. Theme Init (The Fix)
     const theme = localStorage.getItem('selectedTheme') || "default";
     currentThemeIndex = themes.indexOf(theme);
     if(currentThemeIndex === -1) currentThemeIndex = 0;
